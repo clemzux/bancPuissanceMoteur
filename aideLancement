@@ -3,6 +3,8 @@ Attention javaFX ne fait plus partie integrale du SDK.
 Pour lancer le programme avec javaFX, il faut le telecharger ici (au moment de l'écriture du programme, j'utilisais la version 11.0.2):
 https://gluonhq.com/products/javafx/
 
+Le SDK est mis en conf dans lib
+
 Le decompresser quelque part (intelligement) puis l'ajouter au lancement du programme avec run => edit configurations.
 Ajouter dans VM options:
 
