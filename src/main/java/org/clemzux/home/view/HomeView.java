@@ -30,6 +30,8 @@ public class HomeView {
     private Button homePhotoButton, homeOverlaysButton, homeOptionsButton, homeStartButton, homeStopButton;
     private Button openTirButton;
 
+    private TextField rollWeightTextField;
+
     private Canvas canvas;
 
     private ListView<AudioTir> tirListView;
@@ -68,6 +70,9 @@ public class HomeView {
 
         primaryStage.setScene(scene);
         primaryStage.show();
+
+        // on rafraichit le canvas
+        drawCanvasContent();
     }
 
     private void initializeWidgets() {
@@ -104,15 +109,18 @@ public class HomeView {
         // canvas ou on va dessiner les courbes
         canvas = new Canvas(Sizes.canvasWidth, Sizes.canvasHeight);
 
-        // a enlever des que le canvas sera fonctionnel
-        GraphicsContext gc = canvas.getGraphicsContext2D();
-        gc.setFill(Color.AQUA);
-        gc.fillRect(0,0,Sizes.canvasWidth,Sizes.canvasHeight);
+        // partie a droite du canvas concernant les parametres
+        // TODO compte tours, en attendant il y a un vide
+        Label compteToursLabel = new Label("Compte tours");
+        Label compteToursNumeriqueLabel = new Label("Compte tours numerique");
 
-        drawCanvasContent();
+        Label rollWeightLabel = new Label(Constants.strings.getProperty("rollWeightLabel"));
+        rollWeightTextField = new TextField("0");
+
+        VBox parametersVbox = new VBox(compteToursLabel, compteToursNumeriqueLabel, rollWeightLabel, rollWeightTextField);
 
         // hbox contenant la liste des tirs, le canvas, le compte tours ...
-        HBox listCanvasButtonHbox = new HBox(listViewVbox, canvas);
+        HBox listCanvasButtonHbox = new HBox(listViewVbox, canvas, parametersVbox);
 
         // ajout des widgets a la scene
         VBox homeFullWindowVbox = new VBox(menuBar, homeTopButtonHbox, listCanvasButtonHbox);
@@ -124,12 +132,18 @@ public class HomeView {
     // cette fonction sera de nouveau appelee a chaque ajout de tir
     public void drawCanvasContent() {
 
+        GraphicsContext gc = canvas.getGraphicsContext2D();
+
+        // on commence par purger le canvas au cas ou il y aurait deja des choses dessinees
+        gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
+        // a enlever des que le canvas sera fonctionnel
+        gc.setFill(Color.WHITE);
+        gc.fillRect(0,0,Sizes.canvasWidth,Sizes.canvasHeight);
+
         // on determine le nombre de secondes en fonction du tir le plus long
         double nbSeconds = determineSecondsCanvas();
         // on l'incremente de 1 ppour affiche de 0 a 15 par exemple
         nbSeconds += 1;
-
-        GraphicsContext gc = canvas.getGraphicsContext2D();
 
         gc.setStroke(Color.BLACK);
         gc.setLineWidth(3);
@@ -159,13 +173,19 @@ public class HomeView {
 
             // on trace les tirets
             gc.strokeLine(secondsIndex, xAxeHeight, secondsIndex, xAxeHeight + xLineHeight);
+            gc.setLineWidth(2);
             // on ecrit les secondes en dessous de l'axe
-            gc.strokeText(String.valueOf(index), secondsIndex - (firstSecondX * 0.3), xAxeHeight * 1.04);
+            // le if sert a aligner les secondes suerieures a 10 bien sous le trait
+            if (index < 10) {
+                gc.strokeText(String.valueOf(index), secondsIndex - (firstSecondX * 0.3), xAxeHeight * 1.04);
+            }
+            else {
+                gc.strokeText(String.valueOf(index), secondsIndex - (firstSecondX * 0.5), xAxeHeight * 1.04);
+            }
+            gc.setLineWidth(3);
             // on augmente l'ecart entre les tirets
             secondsIndex += sizeBetweenXLines;
         }
-
-        gc.strokeLine(0, xAxeHeight-50, xAxeWidth, xAxeHeight-50);
 
         // on dessine l'axe Y - 1 (Newton metre)
 
