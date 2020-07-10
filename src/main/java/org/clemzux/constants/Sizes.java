@@ -17,5 +17,11 @@ public class Sizes {
     public static int homeWindowWidth = Toolkit.getDefaultToolkit().getScreenSize().width;
     public static int homeWindowHeight = Toolkit.getDefaultToolkit().getScreenSize().height - screenInsets.bottom;
 
+    // taille listView
+    public static double listViewWidth = homeWindowWidth * 0.13;
+    public static double listViewHeight = homeWindowHeight * 0.7;
 
+    // taille canvas
+    public static double canvasWidth = homeWindowWidth * 0.7;
+    public static double canvasHeight = homeWindowHeight * 0.7;
 }
