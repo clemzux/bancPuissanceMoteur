@@ -9,3 +9,5 @@ Ajouter dans VM options:
 --module-path
 C:\Users\Nanou\IdeaProjects\bancPuissanceMoteur\lib\javafx-sdk-11.0.2\lib
 --add-modules=javafx.controls,javafx.fxml
+
+Ne pas oublier de marquer le dossier ressources comme étant des 'resources root'

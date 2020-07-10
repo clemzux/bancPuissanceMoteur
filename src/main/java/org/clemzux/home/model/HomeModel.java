@@ -32,7 +32,12 @@ public class HomeModel {
 
         File tirBase = fileChooser.showOpenDialog(homeView.getPrimaryStage());
 
+        // on choisit la meilleure facon d'ouvrir le fichier
+        // puis on le range dans la liste des tir
         chooseTirOpenner(tirBase);
+
+        // on rafraichit le canvas
+        homeView.drawCanvasContent();
     }
 
     private void chooseTirOpenner(File tirBase) {

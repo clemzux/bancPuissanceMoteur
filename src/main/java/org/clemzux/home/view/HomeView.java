@@ -18,6 +18,7 @@ import org.clemzux.home.controler.HomeController;
 import org.clemzux.utils.AudioTir;
 import org.clemzux.utils.AudioTirCellFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -42,6 +43,8 @@ public class HomeView {
     public HomeView(Stage pStage) {
 
         primaryStage = pStage;
+
+        audioTirs = new ArrayList<>();
 
         initializeWidgets();
 //        widgetsPlacement();
@@ -106,7 +109,7 @@ public class HomeView {
         gc.setFill(Color.AQUA);
         gc.fillRect(0,0,Sizes.canvasWidth,Sizes.canvasHeight);
 
-        drawCanvasAxes();
+        drawCanvasContent();
 
         // hbox contenant la liste des tirs, le canvas, le compte tours ...
         HBox listCanvasButtonHbox = new HBox(listViewVbox, canvas);
@@ -116,10 +119,17 @@ public class HomeView {
         scene = new Scene(homeFullWindowVbox);
     }
 
-    private void drawCanvasAxes() {
+    // cette fonction permet de dessiner le canvas :
+    // axes, courbes, renseignements
+    // cette fonction sera de nouveau appelee a chaque ajout de tir
+    public void drawCanvasContent() {
+
+        // on determine le nombre de secondes en fonction du tir le plus long
+        double nbSeconds = determineSecondsCanvas();
+        // on l'incremente de 1 ppour affiche de 0 a 15 par exemple
+        nbSeconds += 1;
 
         GraphicsContext gc = canvas.getGraphicsContext2D();
-
 
         gc.setStroke(Color.BLACK);
         gc.setLineWidth(3);
@@ -129,20 +139,66 @@ public class HomeView {
         //////////////////////////////
         double xAxeHeight = Sizes.canvasHeight - (Sizes.canvasHeight * 0.05);
         double xAxeWidth = Sizes.canvasWidth;
-        // ligne X
+        // ligne X (secondes)
         gc.strokeLine(0, xAxeHeight, xAxeWidth, xAxeHeight);
         // dessin des tirets sur l'axe X, par defaut a l'allumage du programme
-        // l'axe comportera 20 tirets => 20 secondes
+        // par exemple si l'axe comportere 20 tirets => 20 secondes
         // on va decaller le premier et le dernier tiret de l'axe dans le but
         // de ne pas coller le 0 et le 20 contre les bords du canvas
+        double firstSecondX = xAxeWidth * 0.01;
+        double xLineHeight = xAxeHeight * 0.015;
 
+        // on determine l'ecart entre les tirets de l'axe
+        double sizeBetweenXLines = xAxeWidth - (firstSecondX * 2);
+        sizeBetweenXLines /= nbSeconds -1;
 
-        // on dessine l'axe Y
+        double secondsIndex = firstSecondX;
+
+        // on dessine tous les tirets de l'axe X
+        for (int index = 0; index < nbSeconds; index++) {
+
+            // on trace les tirets
+            gc.strokeLine(secondsIndex, xAxeHeight, secondsIndex, xAxeHeight + xLineHeight);
+            // on ecrit les secondes en dessous de l'axe
+            gc.strokeText(String.valueOf(index), secondsIndex - (firstSecondX * 0.3), xAxeHeight * 1.04);
+            // on augmente l'ecart entre les tirets
+            secondsIndex += sizeBetweenXLines;
+        }
+
+        gc.strokeLine(0, xAxeHeight-50, xAxeWidth, xAxeHeight-50);
+
+        // on dessine l'axe Y - 1 (Newton metre)
+
+        // on dessine l'axe y - 2 (Kilo watt)
     }
 
     public void updateCanvas() {
 
 
+    }
+
+    private double determineSecondsCanvas() {
+
+        // si la liste est vide ou si on efface tous les tirs, le nombre de sec
+        // est par defaut a 15
+        if (audioTirs.size() == 0) {
+
+            return 15;
+        }
+        // sinon on recherche le tir le plus long
+        else {
+
+            double longestTir = 0;
+
+            for (AudioTir tir : audioTirs) {
+
+                if (tir.getDuration() > longestTir) {
+                    longestTir = tir.getDuration();
+                }
+            }
+
+            return longestTir;
+        }
     }
 
     public void populateListView(List<AudioTir> audioTirs) {
