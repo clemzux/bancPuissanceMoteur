@@ -1,14 +1,16 @@
 package org.clemzux.utils;
 
+import java.util.List;
+
 public class AudioTir {
 
-    private short[] audioFic;
+    private List<Float> audioFic;
     private String ficPath;
     private String ficName;
     private int totalFrames;
     double duration;
 
-    public AudioTir(short[] audioFic, String ficPath, String ficName, int totalFrames, double duration) {
+    public AudioTir(List<Float> audioFic, String ficPath, String ficName, int totalFrames, double duration) {
 
         this.audioFic = audioFic;
         this.ficPath = ficPath;
@@ -17,7 +19,14 @@ public class AudioTir {
         this.duration = duration;
     }
 
-    public short[] getAudioFic() { return audioFic; }
+    public int calculateRoundPerMinutes() {
+
+        int roundPerMinutes = 0;
+
+        return roundPerMinutes;
+    }
+
+    public List<Float> getAudioFic() { return audioFic; }
 
     public String getFicPath() { return ficPath; }
 

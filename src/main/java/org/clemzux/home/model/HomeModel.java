@@ -3,6 +3,8 @@ package org.clemzux.home.model;
 import javafx.stage.FileChooser;
 import org.clemzux.constants.Constants;
 import org.clemzux.home.view.HomeView;
+import org.clemzux.sound.FFT;
+import org.clemzux.sound.WaveDecoder;
 import org.clemzux.utils.AudioTir;
 
 import javax.sound.sampled.*;
@@ -67,53 +69,126 @@ public class HomeModel {
             File tirFile = new File(wavTirPath);
             AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(tirFile);
 
-            int bytesPerFrame =
-                    audioInputStream.getFormat().getFrameSize();
-            if (bytesPerFrame == AudioSystem.NOT_SPECIFIED) {
-                // some audio formats may have unspecified frame size
-                // in that case we may read any amount of bytes
-                bytesPerFrame = 1;
-            }
+            WaveDecoder waveDecoder = new WaveDecoder(new FileInputStream(wavTirPath));
+            FFT fft = new FFT(1024, audioInputStream.getFormat().getSampleRate());
 
-            int numBytes = 1024 * bytesPerFrame;
-            byte[] audioBytes = new byte[numBytes];
+            float[] samples = new float[1024];
+            float[] spectrum = new float[1024 / 2 + 1];
+            float[] lastSpectrum = new float[1024 / 2 + 1];
+            List<Float> spectralFlux = new ArrayList<Float>();
+            int i = 0;
 
-            int totalFramesRead = 0;
-
-            try {
-
-                int numBytesRead = 0;
-                int numFramesRead = 0;
-                // Try to read numBytes bytes from the file.
-                while ((numBytesRead = audioInputStream.read(audioBytes)) != -1) {
-                    // Calculate the number of frames actually read.
-                    numFramesRead = numBytesRead / bytesPerFrame;
-                    totalFramesRead += numFramesRead;
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            // on transforme le byte[] en short[]
-            audioShort = new short[numBytes];
-
-            for (int index = 0; index < numBytes; index++) {
-
-                audioShort[index] = (short) audioBytes[index];
-            }
-
-            // test affichage du contenu du fichier audio
-//            for (int index = 0; index<numBytes; index++) {
-//                if (audioShort[index] > 0)
-//                    System.out.println(audioShort[index]);
+//            int numBytes = 1024;
+//            byte[] audioBytes = new byte[numBytes];
+//            int numBytesRead = 0;
+//            int numFramesRead = 0;
+//            // Try to read numBytes bytes from the file.
+//            while (audioInputStream.read(audioBytes) != -1) {
+//
+//                for (byte b : audioBytes) {
+//                    spectralFlux.add((float) b);
+//                    System.out.println(b);
+//                }
 //            }
+
+            while (waveDecoder.readSamples(samples) > 0) {
+                fft.forward(samples, spectralFlux);
+                System.arraycopy(spectrum, 0, lastSpectrum, 0, spectrum.length);
+                System.arraycopy(fft.getSpectrum(), 0, spectrum, 0, spectrum.length);
+
+                // on range le spectre en entier dans le tableau
+//                for (float f : fft.getSpectrum()) {
+//                    spectralFlux.add(f);
+//                }
+            }
+
+            /////////////////////////////////////////////////////////////////
+            // on traite le tir pour qu'il soit plus facilement exploitable
+
+            // on construit un spectre vide avec des 0 dedans
+            List<Float> spectralTreated = new ArrayList<>();
+            for (int j = 0; j < spectralFlux.size(); j++) {
+                spectralTreated.add((float) 0);
+            }
+
+            // on tente de remplacer les petites valeurs par des 0 puis on fait une moyenne
+            // on remplace a nouveau les petits chiffres par des 0
+            // on compte les blocs de valeurs differentes de 0
+
+            spectralFlux = replaceValBy(spectralFlux, (float) 0.03, (float) 0);
+            spectralFlux = averageSpectrum(spectralFlux);
+//            spectralFlux = averageSpectrum(spectralFlux);
+            spectralFlux = replaceValBy(spectralFlux, (float) 0.01, (float) 0);
+//            spectralFlux = averageSpectrum(spectralFlux);
+//            spectralFlux = replaceValBy0(spectralFlux);
+
+//            i = 0;
+//            boolean diff0 = false;
+//
+//            while (i < spectralFlux.size()) {
+//
+//                if (spectralFlux.get(i) != 0) {
+//
+//                    diff0 = true;
+//                }
+//                else {
+//
+//                    if (diff0) {
+//                        spectralTreated.set(i, (float) 1);
+//                    }
+//                    diff0 = false;
+//                }
+//
+//                i++;
+//            }
+
+            // ici on remplace tous les ensembles de val > 0 par des 0
+            // par ex : ... , 8, 12, 13 ,15, ... sera remplace par ... , 0, 0, 0, 15, ...
+
+//            i = 1;
+//            while (i != spectralFlux.size() - 1) {
+//
+//                // s'il y a deux valeurs d'affilee != 0, on la remplace par 0
+//                if (spectralFlux.get(i-1) != 0 && spectralFlux.get(i) != 0) {
+//                    spectralFlux.set(i-1, (float) 0);
+//                }
+//
+//                i++;
+//            }
+
+            // on tente de detecter le nombre de variations de la courbe
+
+            i = 1;
+            boolean grow = true;
+            boolean ungrow = false;
+
+            while (i < spectralFlux.size()) {
+
+                // croissance de la courbe
+                if (spectralFlux.get(i - 1) < spectralFlux.get(i)) {
+
+                    grow = true;
+                    ungrow = false;
+                }
+                else if (spectralFlux.get(i - 1) > spectralFlux.get(i)){
+
+                    ungrow = true;
+
+                    if (grow) {
+                        spectralTreated.set(i, (float) 1);
+                        grow = false;
+                    }
+                }
+
+                i++;
+            }
 
             // on range les donnees dans la classe AudioTir
             AudioFormat format = audioInputStream.getFormat();
             long frameLen = audioInputStream.getFrameLength();
             double durationInSeconds = (frameLen+0.0) / format.getFrameRate();
             String ficName = tirFile.getName();
-            AudioTir audioTir = new AudioTir(audioShort, wavTirPath, ficName, totalFramesRead, durationInSeconds);
+            AudioTir audioTir = new AudioTir(spectralTreated, wavTirPath, ficName, 0, durationInSeconds);
 
             // on range dans la liste des tirs
             audioTirList.add(audioTir);
@@ -123,12 +198,72 @@ public class HomeModel {
 
             // on met a jour le canvas des courbes
             homeView.updateCanvas();
+
+            //////////////////////////////////////////////// a retirer a la fin des tests
+            // test calcul tpm
+            double seconds = frameLen / format.getFrameRate();
+
+            // donnees test
+            int inOneSecond = spectralFlux.size() / (int) seconds;
+            int nbValSup = 0;
+            for (i = inOneSecond*0; i < inOneSecond*0.5; i++) {
+
+                System.out.println(spectralFlux.get(i));
+
+                if (spectralTreated.get(i) != 0)
+                    nbValSup++;
+            }
+
+            System.out.println("nb val sup : " + nbValSup);
+            System.out.println("En une seconde : " + inOneSecond);
+            System.out.println("Duree totale : " + spectralTreated.size());
+
+            /////////////////////////////////////////////////
         }
         catch (UnsupportedAudioFileException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+
+    }
+
+    // cette fonction remplace les valeur voulues par des 0
+    private List<Float> replaceValBy (List<Float> spectrum, float compare, float val) {
+
+        int i = 0;
+        while (i != spectrum.size() - 1) {
+
+            if (spectrum.get(i) < compare) {
+                spectrum.set(i, val);
+            }
+
+            i++;
+        }
+
+        return spectrum;
+    }
+
+    // cette fonction sert a lisser le spectre pour eviter d'avoir trop de variations
+    private List<Float> averageSpectrum (List<Float> spectrum) {
+
+        int i = 6;
+        float moyenne = 0;
+
+        while (i != spectrum.size() - 6) {
+
+//            moyenne = spectrum.get(i - 6) + spectrum.get(i - 5) + spectrum.get(i - 4);
+            moyenne += spectrum.get(i - 1) + spectrum.get(i) + spectrum.get(i + 1);
+//            moyenne += spectrum.get(i + 4) + spectrum.get(i + 5) + spectrum.get(i + 6);
+            moyenne /= 3;
+            spectrum.set(i, moyenne);
+
+            i++;
+        }
+
+        return spectrum;
     }
 
 //    private void openWavTir(String wavTirPath) {

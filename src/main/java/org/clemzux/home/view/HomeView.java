@@ -30,6 +30,8 @@ public class HomeView {
     private Button homePhotoButton, homeOverlaysButton, homeOptionsButton, homeStartButton, homeStopButton;
     private Button openTirButton;
 
+    private Label roundPerMinutesLabel;
+
     private TextField rollWeightTextField;
 
     private Canvas canvas;
@@ -88,6 +90,7 @@ public class HomeView {
 
         MenuBar menuBar = new MenuBar(fileMenu, editMenu, aboutMenu);
 
+        ////////////////////////////////////////////////////////////////////////
         // boutons du haut : ouvrir, photo, overlays, options, start, stop ...
 
         openTirButton = new Button(Constants.strings.getProperty("openTirButton"));
@@ -100,19 +103,23 @@ public class HomeView {
         HBox homeTopButtonHbox = new HBox(openTirButton, homePhotoButton, homeOverlaysButton,
                 homeOptionsButton, homeStartButton, homeStopButton);
 
+        ////////////////////////////////////////////////////////////////////////
         // liste contenant tous les tirs
         tirListView = new ListView<>();
         tirListView.setPrefWidth(Sizes.listViewWidth);
         tirListView.setPrefHeight(Sizes.listViewHeight);
         VBox listViewVbox = new VBox(tirListView);
 
+        ////////////////////////////////////////////////////////////////////////
         // canvas ou on va dessiner les courbes
         canvas = new Canvas(Sizes.canvasWidth, Sizes.canvasHeight);
 
+        ////////////////////////////////////////////////////////////////////////
         // partie a droite du canvas concernant les parametres
         // TODO compte tours, en attendant il y a un vide
         Label compteToursLabel = new Label("Compte tours");
-        Label compteToursNumeriqueLabel = new Label("Compte tours numerique");
+        Label compteToursNumeriqueLabel = new Label("roundPerMinutesLabel");
+        roundPerMinutesLabel = new Label("0");
 
         Label rollWeightLabel = new Label(Constants.strings.getProperty("rollWeightLabel"));
         rollWeightTextField = new TextField("0");
