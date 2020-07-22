@@ -6,6 +6,7 @@ import org.clemzux.home.view.HomeView;
 import org.clemzux.sound.FFT;
 import org.clemzux.sound.WaveDecoder;
 import org.clemzux.utils.AudioTir;
+import org.clemzux.utils.Models;
 
 import javax.sound.sampled.*;
 import java.io.*;
@@ -16,14 +17,16 @@ public class HomeModel {
 
     private HomeView homeView;
 
-    private List<AudioTir> audioTirList;
-
     private short[] audioShort;
+
+    private List<AudioTir> audioTirList;
 
     public HomeModel(HomeView view) {
 
         homeView = view;
-        audioTirList = new ArrayList<>();
+
+        // on range le model actuel dans la liste des models
+        Models.homeModel = this;
     }
 
     // cette fonction sert a ouvrir un fichier wav et ensuite le ranger dans la listView des tirs
@@ -39,7 +42,7 @@ public class HomeModel {
         chooseTirOpenner(tirBase);
 
         // on rafraichit le canvas
-        homeView.drawCanvasContent();
+        homeView.drawCanvasContent(audioTirList);
     }
 
     private void chooseTirOpenner(File tirBase) {
@@ -68,46 +71,27 @@ public class HomeModel {
 
             File tirFile = new File(wavTirPath);
             AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(tirFile);
+            AudioFormat format = audioInputStream.getFormat();
+
+            List<Float> spectralFlux = new ArrayList<Float>();
+            float[] buffer = new float[1024];
 
             WaveDecoder waveDecoder = new WaveDecoder(new FileInputStream(wavTirPath));
             FFT fft = new FFT(1024, audioInputStream.getFormat().getSampleRate());
 
-            float[] samples = new float[1024];
-            float[] spectrum = new float[1024 / 2 + 1];
-            float[] lastSpectrum = new float[1024 / 2 + 1];
-            List<Float> spectralFlux = new ArrayList<Float>();
-            int i = 0;
+            while (waveDecoder.readSamples(buffer) > 0) {
 
-//            int numBytes = 1024;
-//            byte[] audioBytes = new byte[numBytes];
-//            int numBytesRead = 0;
-//            int numFramesRead = 0;
-//            // Try to read numBytes bytes from the file.
-//            while (audioInputStream.read(audioBytes) != -1) {
-//
-//                for (byte b : audioBytes) {
-//                    spectralFlux.add((float) b);
-//                    System.out.println(b);
-//                }
-//            }
-
-            while (waveDecoder.readSamples(samples) > 0) {
-                fft.forward(samples, spectralFlux);
-                System.arraycopy(spectrum, 0, lastSpectrum, 0, spectrum.length);
-                System.arraycopy(fft.getSpectrum(), 0, spectrum, 0, spectrum.length);
-
-                // on range le spectre en entier dans le tableau
-//                for (float f : fft.getSpectrum()) {
-//                    spectralFlux.add(f);
-//                }
+                fft.forward(buffer, spectralFlux);
             }
 
             /////////////////////////////////////////////////////////////////
             // on traite le tir pour qu'il soit plus facilement exploitable
 
+            int i = 0;
+
             // on construit un spectre vide avec des 0 dedans
             List<Float> spectralTreated = new ArrayList<>();
-            for (int j = 0; j < spectralFlux.size(); j++) {
+            for (i = 0; i < spectralFlux.size(); i++) {
                 spectralTreated.add((float) 0);
             }
 
@@ -117,44 +101,7 @@ public class HomeModel {
 
             spectralFlux = replaceValBy(spectralFlux, (float) 0.03, (float) 0);
             spectralFlux = averageSpectrum(spectralFlux);
-//            spectralFlux = averageSpectrum(spectralFlux);
-            spectralFlux = replaceValBy(spectralFlux, (float) 0.01, (float) 0);
-//            spectralFlux = averageSpectrum(spectralFlux);
-//            spectralFlux = replaceValBy0(spectralFlux);
-
-//            i = 0;
-//            boolean diff0 = false;
-//
-//            while (i < spectralFlux.size()) {
-//
-//                if (spectralFlux.get(i) != 0) {
-//
-//                    diff0 = true;
-//                }
-//                else {
-//
-//                    if (diff0) {
-//                        spectralTreated.set(i, (float) 1);
-//                    }
-//                    diff0 = false;
-//                }
-//
-//                i++;
-//            }
-
-            // ici on remplace tous les ensembles de val > 0 par des 0
-            // par ex : ... , 8, 12, 13 ,15, ... sera remplace par ... , 0, 0, 0, 15, ...
-
-//            i = 1;
-//            while (i != spectralFlux.size() - 1) {
-//
-//                // s'il y a deux valeurs d'affilee != 0, on la remplace par 0
-//                if (spectralFlux.get(i-1) != 0 && spectralFlux.get(i) != 0) {
-//                    spectralFlux.set(i-1, (float) 0);
-//                }
-//
-//                i++;
-//            }
+            spectralFlux = replaceValBy(spectralFlux, (float) 0.03, (float) 0);
 
             // on tente de detecter le nombre de variations de la courbe
 
@@ -184,39 +131,41 @@ public class HomeModel {
             }
 
             // on range les donnees dans la classe AudioTir
-            AudioFormat format = audioInputStream.getFormat();
             long frameLen = audioInputStream.getFrameLength();
             double durationInSeconds = (frameLen+0.0) / format.getFrameRate();
             String ficName = tirFile.getName();
             AudioTir audioTir = new AudioTir(spectralTreated, wavTirPath, ficName, 0, durationInSeconds);
 
             // on range dans la liste des tirs
+
+            if (audioTirList == null) {
+                audioTirList = new ArrayList<>();
+            }
             audioTirList.add(audioTir);
 
-            // on met a jour la liste des tirs
-            homeView.populateListView(audioTirList);
-
-            // on met a jour le canvas des courbes
-            homeView.updateCanvas();
+            // on met a jour la vue (listview and canvas
+            updateListAndCanvas();
 
             //////////////////////////////////////////////// a retirer a la fin des tests
             // test calcul tpm
-            double seconds = frameLen / format.getFrameRate();
-
-            // donnees test
-            int inOneSecond = spectralFlux.size() / (int) seconds;
-            int nbValSup = 0;
-            for (i = inOneSecond*0; i < inOneSecond*0.5; i++) {
-
-                System.out.println(spectralFlux.get(i));
-
-                if (spectralTreated.get(i) != 0)
-                    nbValSup++;
-            }
-
-            System.out.println("nb val sup : " + nbValSup);
-            System.out.println("En une seconde : " + inOneSecond);
-            System.out.println("Duree totale : " + spectralTreated.size());
+//            double seconds = frameLen / format.getFrameRate();
+//
+//            // donnees test
+//            int inOneSecond = spectralFlux.size() / (int) seconds;
+//            int nbValSup = 0;
+//            for (i = inOneSecond*1; i < inOneSecond*2; i++) {
+//
+////                System.out.println(spectralFlux.get(i));
+//
+//                if (spectralTreated.get(i) != 0)
+//                    nbValSup++;
+//            }
+//
+//            System.out.println("nb val sup : " + nbValSup);
+//            System.out.println("En une seconde : " + inOneSecond);
+//            System.out.println("Duree totale en cases du tableau : " + spectralTreated.size());
+//            System.out.println("Duree en sec : " + durationInSeconds);
+//            System.out.println("framerate : " + frameLen);
 
             /////////////////////////////////////////////////
         }
@@ -227,7 +176,15 @@ public class HomeModel {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
 
+    public void updateListAndCanvas() {
+
+        // on met a jour la liste des tirs
+        homeView.populateListView(audioTirList);
+
+        // on met a jour le canvas des courbes
+        homeView.updateCanvas();
     }
 
     // cette fonction remplace les valeur voulues par des 0
@@ -266,47 +223,5 @@ public class HomeModel {
         return spectrum;
     }
 
-//    private void openWavTir(String wavTirPath) {
-//
-//        // l'ouverture et le rangement du son dans un short[] sont des algos pris sur le net
-//        try {
-//            // on ouvre le fichier
-//
-//            File tirFile = new File(wavTirPath);
-//
-//            ByteArrayOutputStream out = new ByteArrayOutputStream();
-//            BufferedInputStream in = new BufferedInputStream(new FileInputStream(tirFile));
-//
-//            // on essaye de le lire
-//
-//            int read;
-//            byte[] buff = new byte[1024];
-//
-//            while ((read = in.read(buff)) > 0) {
-//                out.write(buff, 0, read);
-//            }
-//
-//            out.flush();
-//            byte[] audioBytes = out.toByteArray();
-//
-//            // on transforme le byte[] en short[]
-//            int size = audioBytes.length;
-//            audioShort = new short[size];
-//
-//            for (int index = 0; index < size; index++)
-//                audioShort[index] = (short) audioBytes[index];
-//
-//            for (int index = 0; index<size; index++) {
-//                if (audioShort[index] > 0)
-//                System.out.println(audioShort[index]);
-//            }
-//        }
-//        catch (FileNotFoundException e) {
-//            e.printStackTrace();
-//        }
-//        catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//
-//    }
+    public List<AudioTir> getAudioTirList() { return audioTirList; }
 }

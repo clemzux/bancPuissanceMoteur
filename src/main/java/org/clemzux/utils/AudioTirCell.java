@@ -1,5 +1,6 @@
 package org.clemzux.utils;
 
+import javafx.event.ActionEvent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
@@ -22,6 +23,7 @@ public class AudioTirCell extends ListCell<AudioTir> {
 
             // bouton supprimer tir
             Button deleteButton = new Button();
+            initDeleteButtonListener(deleteButton, tir);
             Image deleteImage = new Image("img/close.png");
             ImageView deleteImageView = new ImageView(deleteImage);
             deleteImageView.setFitHeight(Sizes.homeWindowHeight * 0.01);
@@ -44,5 +46,26 @@ public class AudioTirCell extends ListCell<AudioTir> {
             VBox allTirVbox = new VBox(nomTir, allTirHbox);
             setGraphic(allTirVbox);
         }
+    }
+
+    // ce listener s'active quand on clique sur une croix d'un item de la listview
+    private void initDeleteButtonListener (Button deleteButton, AudioTir tir) {
+
+        deleteButton.setOnAction((ActionEvent e) -> {
+
+            int i = 0;
+            while (i < Models.homeModel.getAudioTirList().size()) {
+
+                if (tir.getFicName().equals(Models.homeModel.getAudioTirList().get(i).getFicName())) {
+
+                    Models.homeModel.getAudioTirList().remove(i);
+                    Models.homeModel.updateListAndCanvas();
+
+                    i = Models.homeModel.getAudioTirList().size();
+                }
+
+                i++;
+            }
+        });
     }
 }

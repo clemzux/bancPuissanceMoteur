@@ -17,8 +17,8 @@ import org.clemzux.constants.Sizes;
 import org.clemzux.home.controler.HomeController;
 import org.clemzux.utils.AudioTir;
 import org.clemzux.utils.AudioTirCellFactory;
+import org.clemzux.utils.Models;
 
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -38,8 +38,6 @@ public class HomeView {
 
     private ListView<AudioTir> tirListView;
 
-    private List<AudioTir> audioTirs;
-
 
     //////// builder ////////
 
@@ -47,8 +45,6 @@ public class HomeView {
     public HomeView(Stage pStage) {
 
         primaryStage = pStage;
-
-        audioTirs = new ArrayList<>();
 
         initializeWidgets();
 //        widgetsPlacement();
@@ -74,7 +70,7 @@ public class HomeView {
         primaryStage.show();
 
         // on rafraichit le canvas
-        drawCanvasContent();
+        drawCanvasContent(null);
     }
 
     private void initializeWidgets() {
@@ -105,10 +101,7 @@ public class HomeView {
 
         ////////////////////////////////////////////////////////////////////////
         // liste contenant tous les tirs
-        tirListView = new ListView<>();
-        tirListView.setPrefWidth(Sizes.listViewWidth);
-        tirListView.setPrefHeight(Sizes.listViewHeight);
-        VBox listViewVbox = new VBox(tirListView);
+        initTirListView();
 
         ////////////////////////////////////////////////////////////////////////
         // canvas ou on va dessiner les courbes
@@ -126,6 +119,8 @@ public class HomeView {
 
         VBox parametersVbox = new VBox(compteToursLabel, compteToursNumeriqueLabel, rollWeightLabel, rollWeightTextField);
 
+        VBox listViewVbox = new VBox(tirListView);
+
         // hbox contenant la liste des tirs, le canvas, le compte tours ...
         HBox listCanvasButtonHbox = new HBox(listViewVbox, canvas, parametersVbox);
 
@@ -137,7 +132,7 @@ public class HomeView {
     // cette fonction permet de dessiner le canvas :
     // axes, courbes, renseignements
     // cette fonction sera de nouveau appelee a chaque ajout de tir
-    public void drawCanvasContent() {
+    public void drawCanvasContent(List<AudioTir> audioTirs) {
 
         GraphicsContext gc = canvas.getGraphicsContext2D();
 
@@ -148,7 +143,7 @@ public class HomeView {
         gc.fillRect(0,0,Sizes.canvasWidth,Sizes.canvasHeight);
 
         // on determine le nombre de secondes en fonction du tir le plus long
-        double nbSeconds = determineSecondsCanvas();
+        double nbSeconds = determineSecondsCanvas(audioTirs);
         // on l'incremente de 1 ppour affiche de 0 a 15 par exemple
         nbSeconds += 1;
 
@@ -204,11 +199,11 @@ public class HomeView {
 
     }
 
-    private double determineSecondsCanvas() {
+    private double determineSecondsCanvas(List<AudioTir> audioTirs) {
 
         // si la liste est vide ou si on efface tous les tirs, le nombre de sec
         // est par defaut a 15
-        if (audioTirs.size() == 0) {
+        if (audioTirs == null || audioTirs.size() == 0) {
 
             return 15;
         }
@@ -230,10 +225,19 @@ public class HomeView {
 
     public void populateListView(List<AudioTir> audioTirs) {
 
-        this.audioTirs = audioTirs;
-        tirListView.getItems().addAll(audioTirs);
+        tirListView.getItems().clear();
 
+        tirListView.getItems().addAll(audioTirs);
         tirListView.setCellFactory(new AudioTirCellFactory());
+    }
+
+    private void initTirListView() {
+
+        tirListView = new ListView<>();
+
+        tirListView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+        tirListView.setPrefWidth(Sizes.listViewWidth);
+        tirListView.setPrefHeight(Sizes.listViewHeight);
     }
 
     public Stage getPrimaryStage() { return primaryStage; }
@@ -251,4 +255,6 @@ public class HomeView {
     public Button getHomeStopButton() { return homeStopButton; }
 
     public Button getOpenTirButton() { return openTirButton; }
+
+    public ListView<AudioTir> getTirListView() { return tirListView; }
 }
