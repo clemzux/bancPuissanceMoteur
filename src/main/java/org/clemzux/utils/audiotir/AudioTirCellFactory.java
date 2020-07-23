@@ -1,4 +1,4 @@
-package org.clemzux.utils;
+package org.clemzux.utils.audiotir;
 
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;

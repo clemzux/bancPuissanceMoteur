@@ -5,7 +5,7 @@ import org.clemzux.constants.Constants;
 import org.clemzux.home.view.HomeView;
 import org.clemzux.sound.FFT;
 import org.clemzux.sound.WaveDecoder;
-import org.clemzux.utils.AudioTir;
+import org.clemzux.utils.audiotir.AudioTir;
 import org.clemzux.utils.Models;
 
 import javax.sound.sampled.*;
@@ -184,7 +184,7 @@ public class HomeModel {
         homeView.populateListView(audioTirList);
 
         // on met a jour le canvas des courbes
-        homeView.updateCanvas();
+        homeView.updateCanvas(audioTirList);
     }
 
     // cette fonction remplace les valeur voulues par des 0

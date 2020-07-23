@@ -7,7 +7,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
 import org.clemzux.home.model.HomeModel;
 import org.clemzux.home.view.HomeView;
-import org.clemzux.utils.AudioTir;
+import org.clemzux.utils.audiotir.AudioTir;
 
 public class HomeController {
 

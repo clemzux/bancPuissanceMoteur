@@ -15,8 +15,8 @@ import javafx.stage.Stage;
 import org.clemzux.constants.Constants;
 import org.clemzux.constants.Sizes;
 import org.clemzux.home.controler.HomeController;
-import org.clemzux.utils.AudioTir;
-import org.clemzux.utils.AudioTirCellFactory;
+import org.clemzux.utils.audiotir.AudioTir;
+import org.clemzux.utils.audiotir.AudioTirCellFactory;
 
 import java.util.List;
 
@@ -129,10 +129,14 @@ public class HomeView {
     }
 
     // cette fonction permet de dessiner le canvas :
-    // axes, courbes, renseignements
+    // axes (sec, Nm, Kw), courbes, renseignements
     // cette fonction sera de nouveau appelee a chaque ajout de tir
     public void drawCanvasContent(List<AudioTir> audioTirs) {
 
+        if (audioTirs !=null)
+        for (AudioTir t : audioTirs) {
+            System.out.println(t.getCurveColor().toString());
+        }
         GraphicsContext gc = canvas.getGraphicsContext2D();
 
         // on commence par purger le canvas au cas ou il y aurait deja des choses dessinees
@@ -142,9 +146,8 @@ public class HomeView {
         gc.fillRect(0,0,Sizes.canvasWidth,Sizes.canvasHeight);
 
         // on determine le nombre de secondes en fonction du tir le plus long
-        double nbSeconds = determineSecondsCanvas(audioTirs);
-        // on l'incremente de 1 ppour affiche de 0 a 15 par exemple
-        nbSeconds += 1;
+        // on l'incremente de 1 ppour afficher de 0 a 15 par exemple
+        int nbSeconds = (int) determineSecondsInCanvas(audioTirs) + 1;
 
         gc.setStroke(Color.BLACK);
         gc.setLineWidth(3);
@@ -152,59 +155,179 @@ public class HomeView {
         //////////////////////////////
         // on dessine l'axe X
         //////////////////////////////
-        double xAxeHeight = Sizes.canvasHeight - (Sizes.canvasHeight * 0.05);
-        double xAxeWidth = Sizes.canvasWidth;
+
+        int xAxeHeight = (int) (Sizes.canvasHeight - (Sizes.canvasHeight * 0.05));
+        int xAxeWidth = (int) Sizes.canvasWidth;
+
         // ligne X (secondes)
         gc.strokeLine(0, xAxeHeight, xAxeWidth, xAxeHeight);
         // dessin des tirets sur l'axe X, par defaut a l'allumage du programme
         // par exemple si l'axe comportere 20 tirets => 20 secondes
         // on va decaller le premier et le dernier tiret de l'axe dans le but
         // de ne pas coller le 0 et le 20 contre les bords du canvas
-        double firstSecondX = xAxeWidth * 0.01;
-        double xLineHeight = xAxeHeight * 0.015;
+        int firstSecondX = (int) (xAxeWidth * 0.03);
+        int xLineHeight = (int) (xAxeHeight * 0.015);
 
         // on determine l'ecart entre les tirets de l'axe
-        double sizeBetweenXLines = xAxeWidth - (firstSecondX * 2);
-        sizeBetweenXLines /= nbSeconds -1;
+        int sizeBetweenXLines = (xAxeWidth - (firstSecondX * 2));
+        sizeBetweenXLines /= nbSeconds;
 
-        double secondsIndex = firstSecondX;
+        int secondsIndex = firstSecondX;
 
         // on dessine tous les tirets de l'axe X
-        for (int index = 0; index < nbSeconds; index++) {
+        for (int index = 0; index <= nbSeconds; index++) {
+
+            // on met la largeur des traits a 3px pour tracer les traits
+            gc.setLineWidth(3);
 
             // on trace les tirets
             gc.strokeLine(secondsIndex, xAxeHeight, secondsIndex, xAxeHeight + xLineHeight);
-            gc.setLineWidth(2);
-            // on ecrit les secondes en dessous de l'axe
-            // le if sert a aligner les secondes suerieures a 10 bien sous le trait
+            // on change la largeur des traits pour ecrire des lettres lisibles
+            gc.setLineWidth(1);
+            // on ecrit les nombre a cote de l'axe
+            // le if sert a aligner les nombres superieurs a 10 bien a cote du trait
             if (index < 10) {
-                gc.strokeText(String.valueOf(index), secondsIndex - (firstSecondX * 0.3), xAxeHeight * 1.04);
+                gc.strokeText(String.valueOf(index), secondsIndex - (firstSecondX * 0.1), xAxeHeight * 1.04);
             }
             else {
-                gc.strokeText(String.valueOf(index), secondsIndex - (firstSecondX * 0.5), xAxeHeight * 1.04);
+                gc.strokeText(String.valueOf(index), secondsIndex - (firstSecondX * 0.25), xAxeHeight * 1.04);
             }
-            gc.setLineWidth(3);
+
+            // on trace les lines en pointilles a chaque seconde verticalement
+            gc.setStroke(Color.SLATEGRAY);
+            gc.setLineWidth(0.7);
+            gc.setLineDashes(Sizes.canvasHeight * 0.01);
+            gc.strokeLine(secondsIndex, xAxeHeight, secondsIndex, 0);
+            gc.setStroke(Color.BLACK);
+            gc.setLineDashes(0);
+
             // on augmente l'ecart entre les tirets
             secondsIndex += sizeBetweenXLines;
         }
 
-        // on dessine l'axe Y - 1 (Newton metre)
+        // on ecrit l'unite de l'axe
+        gc.setLineWidth(1);
+        secondsIndex -= sizeBetweenXLines;
+        secondsIndex += xAxeWidth * 0.015;
+        gc.strokeText(Constants.strings.getProperty("seconds"),
+                secondsIndex - (firstSecondX * 0.1), xAxeHeight * 1.04);
 
-        // on dessine l'axe y - 2 (Kilo watt)
+        gc.setLineWidth(3);
+
+        System.out.println("\n\n");
+
+        ///////////////////////////////////////
+        // on dessine l'axe des newton metre
+        ///////////////////////////////////////
+
+        // cette variable represente la base de l'axe de Nm
+        int newtonAxeWidth = firstSecondX;
+        int newtonAxeHeight = xAxeHeight;
+
+        // ligne representant l'axe
+        gc.strokeLine(newtonAxeWidth, newtonAxeHeight, newtonAxeWidth, 0);
+
+        // nombre de pas affiches a l'ecran (va de 0 a 15)
+        int newtonStep = 16;
+
+        int firstNewtonStep = newtonAxeHeight;
+        int newtonStepIndex = firstNewtonStep;
+        int sizeBetweenNewtonStep = newtonAxeHeight / newtonStep;
+
+        newtonStepIndex -= sizeBetweenNewtonStep;
+
+        for (int index = 1; index < newtonStep; index++) {
+
+            gc.strokeLine(newtonAxeWidth, newtonStepIndex, newtonAxeWidth - Sizes.canvasWidth * 0.005, newtonStepIndex);
+
+            // on change la largeur des trait pour ecrire des lettres lisibles
+            gc.setLineWidth(1);
+
+            if (index < 10) {
+                gc.strokeText(String.valueOf(index), newtonAxeWidth * 0.45, newtonStepIndex + newtonAxeHeight * 0.0095);
+            }
+            else {
+                gc.strokeText(String.valueOf(index), newtonAxeWidth * 0.2, newtonStepIndex + newtonAxeHeight * 0.0095);
+            }
+
+            // on remet la largeur des traits a 3px pour tracer les traits
+            gc.setLineWidth(3);
+
+            // on trace les lines en pointilles a chaque newton metre horizontalement
+            gc.setStroke(Color.SLATEGRAY);
+            gc.setLineWidth(0.7);
+            gc.setLineDashes(Sizes.canvasHeight * 0.01);
+            gc.strokeLine(newtonAxeWidth, newtonStepIndex, secondsIndex, newtonStepIndex);
+            gc.setStroke(Color.BLACK);
+            gc.setLineDashes(0);
+
+
+            // on decremente pour le prochain tiret
+            newtonStepIndex -= sizeBetweenNewtonStep;
+        }
+
+        // on ecrit l'unite de l'axe
+        gc.setLineWidth(1);
+        gc.strokeText(Constants.strings.getProperty("newtonMetre"),
+                newtonAxeWidth * 0.2, newtonStepIndex + newtonAxeHeight * 0.0095);
+
+        gc.setLineWidth(3);
+
+        ///////////////////////////////////////
+        // on dessine l'axe des kilo watts
+        ///////////////////////////////////////
+
+        // cette variable represente la base de l'axe des Kw
+        int kiloWattAxeWidth = firstSecondX + nbSeconds * sizeBetweenXLines;
+        int kiloWattAxeHeight = xAxeHeight;
+
+        // ligne representant l'axe
+        gc.strokeLine(kiloWattAxeWidth, kiloWattAxeHeight, kiloWattAxeWidth, 0);
+
+        int kiloWattStep = 16;
+        int firstKiloWattStep = kiloWattAxeHeight;
+        int sizeBetweenKiloWattStep = kiloWattAxeHeight / kiloWattStep;
+        int kiloWattStepIndex = firstKiloWattStep;
+
+        kiloWattStepIndex -= sizeBetweenKiloWattStep;
+
+        for (int index = 1; index < kiloWattStep; index++) {
+
+            gc.strokeLine(kiloWattAxeWidth, kiloWattStepIndex, kiloWattAxeWidth + Sizes.canvasWidth * 0.005 , kiloWattStepIndex);
+
+            // on change la largeur des trait pour ecrire des lettres lisibles
+            gc.setLineWidth(1);
+
+            gc.strokeText(String.valueOf(index),
+                    kiloWattAxeWidth + Sizes.canvasWidth * 0.01, kiloWattStepIndex + kiloWattAxeHeight * 0.0095);
+
+            // on remet la largeur des traits a 3px pour tracer les traits
+            gc.setLineWidth(3);
+
+            kiloWattStepIndex -= sizeBetweenKiloWattStep;
+        }
+
+        // on ecrit l'unite de l'axe
+        gc.setLineWidth(1);
+        gc.strokeText(Constants.strings.getProperty("kiloWatt"),
+                kiloWattAxeWidth + Sizes.canvasWidth * 0.01, kiloWattStep + kiloWattAxeHeight * 0.0095);
+
+        gc.setLineWidth(3);
     }
 
-    public void updateCanvas() {
+    private double determineNewtonMax(List<AudioTir> audioTirs) {
+        // TODO: 23/07/2020  dssd
 
-
+        return 100;
     }
 
-    private double determineSecondsCanvas(List<AudioTir> audioTirs) {
+    private double determineSecondsInCanvas(List<AudioTir> audioTirs) {
 
         // si la liste est vide ou si on efface tous les tirs, le nombre de sec
-        // est par defaut a 15
+        // est par defaut a 14 pour faire un axe de 15 tirets
         if (audioTirs == null || audioTirs.size() == 0) {
 
-            return 15;
+            return 14;
         }
         // sinon on recherche le tir le plus long
         else {
@@ -220,6 +343,11 @@ public class HomeView {
 
             return longestTir;
         }
+    }
+
+    public void updateCanvas(List<AudioTir> audioTirs) {
+
+        drawCanvasContent(audioTirs);
     }
 
     public void populateListView(List<AudioTir> audioTirs) {
