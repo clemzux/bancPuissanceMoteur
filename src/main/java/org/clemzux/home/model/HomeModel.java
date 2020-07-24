@@ -1,5 +1,6 @@
 package org.clemzux.home.model;
 
+import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import org.clemzux.constants.Constants;
 import org.clemzux.home.view.HomeView;
@@ -11,7 +12,9 @@ import org.clemzux.utils.Models;
 import javax.sound.sampled.*;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class HomeModel {
 
@@ -132,9 +135,13 @@ public class HomeModel {
 
             // on range les donnees dans la classe AudioTir
             long frameLen = audioInputStream.getFrameLength();
-            double durationInSeconds = (frameLen+0.0) / format.getFrameRate();
+            double durationInSeconds = frameLen / format.getFrameRate();
             String ficName = tirFile.getName();
-            AudioTir audioTir = new AudioTir(spectralTreated, wavTirPath, ficName, 0, durationInSeconds);
+            String inertiaMoment = homeView.getInertiaMomentTextField().getText();
+
+            AudioTir audioTir =
+                    new AudioTir(spectralTreated, wavTirPath, ficName, 0,
+                            durationInSeconds, Float.valueOf(inertiaMoment));
 
             // on range dans la liste des tirs
 

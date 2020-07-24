@@ -59,6 +59,11 @@ public class AudioTirCell extends ListCell<AudioTir> {
         colorPicker.setOnAction((ActionEvent e) -> {
 
             tir.setCurveColor(colorPicker.getValue());
+
+            // la couleur ayant change, il faut indiquer que celle ci est disponible
+            tir.setColorAvailable(tir.getFicPath());
+
+            // on met a jour la couleur en rafraichissant le canvas
             Models.homeModel.updateListAndCanvas();
         });
     }

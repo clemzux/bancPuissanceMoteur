@@ -31,7 +31,7 @@ public class HomeView {
 
     private Label roundPerMinutesLabel;
 
-    private TextField rollWeightTextField;
+    private TextField inertiaMomentTextField;
 
     private Canvas canvas;
 
@@ -114,9 +114,9 @@ public class HomeView {
         roundPerMinutesLabel = new Label("0");
 
         Label rollWeightLabel = new Label(Constants.strings.getProperty("rollWeightLabel"));
-        rollWeightTextField = new TextField("0");
+        inertiaMomentTextField = new TextField("0.66622");
 
-        VBox parametersVbox = new VBox(compteToursLabel, compteToursNumeriqueLabel, rollWeightLabel, rollWeightTextField);
+        VBox parametersVbox = new VBox(compteToursLabel, compteToursNumeriqueLabel, rollWeightLabel, inertiaMomentTextField);
 
         VBox listViewVbox = new VBox(tirListView);
 
@@ -133,10 +133,6 @@ public class HomeView {
     // cette fonction sera de nouveau appelee a chaque ajout de tir
     public void drawCanvasContent(List<AudioTir> audioTirs) {
 
-        if (audioTirs !=null)
-        for (AudioTir t : audioTirs) {
-            System.out.println(t.getCurveColor().toString());
-        }
         GraphicsContext gc = canvas.getGraphicsContext2D();
 
         // on commence par purger le canvas au cas ou il y aurait deja des choses dessinees
@@ -213,8 +209,6 @@ public class HomeView {
                 secondsIndex - (firstSecondX * 0.1), xAxeHeight * 1.04);
 
         gc.setLineWidth(3);
-
-        System.out.println("\n\n");
 
         ///////////////////////////////////////
         // on dessine l'axe des newton metre
@@ -313,6 +307,42 @@ public class HomeView {
                 kiloWattAxeWidth + Sizes.canvasWidth * 0.01, kiloWattStep + kiloWattAxeHeight * 0.0095);
 
         gc.setLineWidth(3);
+
+        ///////////////////////////////////////
+        // on dessine les courbes
+        ///////////////////////////////////////
+
+        if (audioTirs != null) {
+
+            /////////////////////////////////////////////////
+            // on commence par celle des newtons metres
+
+            for (AudioTir tir : audioTirs) {
+
+                // on va determiner les pas (axe des secondes) ou on va mettre un point
+                // rappel on aura 10 points par secondes
+                int secondsStep = xAxeWidth - firstSecondX;
+                secondsStep /= tir.getDuration();
+                secondsStep /= 10;
+                secondsIndex = firstSecondX;
+                int lastSecondsindex = secondsIndex;
+                float lastVariation = tir.getSpectrumVariations().get(0);
+
+                // on attribue la couleur du tir a la couleur de la courbe
+                gc.setStroke(tir.getCurveColor());
+                System.out.println(tir.getCurveColor().toString());
+                for (float variation : tir.getSpectrumVariations()) {
+
+                    gc.strokeLine(lastSecondsindex, xAxeHeight - lastVariation*10, secondsIndex, xAxeHeight - variation*10);
+                    lastSecondsindex = secondsIndex;
+                    secondsIndex += secondsStep;
+                }
+
+            }
+
+            /////////////////////////////////////////////////
+            // on dessine maintenant celle des kilos watts
+        }
     }
 
     private double determineNewtonMax(List<AudioTir> audioTirs) {
@@ -384,4 +414,6 @@ public class HomeView {
     public Button getOpenTirButton() { return openTirButton; }
 
     public ListView<AudioTir> getTirListView() { return tirListView; }
+
+    public TextField getInertiaMomentTextField() { return inertiaMomentTextField; }
 }
