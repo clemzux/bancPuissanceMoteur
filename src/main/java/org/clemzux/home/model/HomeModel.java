@@ -218,9 +218,7 @@ public class HomeModel {
 
         while (i != spectrum.size() - 6) {
 
-//            moyenne = spectrum.get(i - 6) + spectrum.get(i - 5) + spectrum.get(i - 4);
             moyenne += spectrum.get(i - 1) + spectrum.get(i) + spectrum.get(i + 1);
-//            moyenne += spectrum.get(i + 4) + spectrum.get(i + 5) + spectrum.get(i + 6);
             moyenne /= 3;
             spectrum.set(i, moyenne);
 
