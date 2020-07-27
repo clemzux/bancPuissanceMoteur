@@ -231,8 +231,6 @@ public class HomeView {
 
         float newtonStep = (float) (determineNewtonMax(audioTirs) * 1.6);
 
-        System.out.println("newton max : " + newtonStep);
-
         float firstNewtonStep = newtonAxeHeight;
         float newtonStepIndex = firstNewtonStep;
         // le - hauteur du canvas sert a eviter que le derniere unite soit colle en haut
@@ -334,8 +332,7 @@ public class HomeView {
                 float lastVariation = tir.getRoundPerFrameVariation().get(0);
 
                 // axe des newtons
-                float newtonMax = newtonStepIndex + sizeBetweenNewtonStep;
-                float newtonMeterSize = (xAxeHeight - sizeBetweenNewtonStep) / newtonStep;
+                float newtonMeterSize = (float) ((newtonAxeHeight - Sizes.canvasHeight * 0.05) / newtonStep);
 
                 // on attribue la couleur du tir a la couleur de la courbe
                 gc.setStroke(tir.getCurveColor());
@@ -364,10 +361,8 @@ public class HomeView {
 
                 float wattSize = (float) ((kiloWattAxeHeight - (Sizes.canvasHeight * 0.05) * 2) / kiloWattStep);
 
-                System.out.println("kw maw : " + determineKiloWattMax(audioTirs));
                 for (float watt : tir.getKiloWattsPerFrameCurve()) {
 
-//                    System.out.println(watt);
                     gc.strokeLine(lastSecondsindex, xAxeHeight - (lastVariation * wattSize),
                             secondsIndex, xAxeHeight - (watt * wattSize));
                     lastSecondsindex = secondsIndex;
