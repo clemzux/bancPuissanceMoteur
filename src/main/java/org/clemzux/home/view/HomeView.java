@@ -115,11 +115,11 @@ public class HomeView {
 
         Label inertiaMomentLabel = new Label(Constants.strings.getProperty("rollWeightLabel"));
 //        inertiaMomentTextField = new TextField("2188.125");
-        inertiaMomentTextField = new TextField("0.6");
+        inertiaMomentTextField = new TextField("1");
 
 
         Label demultiplicationLabel = new Label(Constants.strings.getProperty("demultiplicationLabel"));
-        demultiplicationTextField = new TextField("0.8");
+        demultiplicationTextField = new TextField("1");
 
         VBox parametersVbox = new VBox(compteToursLabel, compteToursNumeriqueLabel, inertiaMomentLabel, inertiaMomentTextField,
                 demultiplicationLabel, demultiplicationTextField);
@@ -186,7 +186,7 @@ public class HomeView {
             gc.strokeLine(secondsIndex, xAxeHeight, secondsIndex, xAxeHeight + xLineHeight);
             // on change la largeur des traits pour ecrire des lettres lisibles
             gc.setLineWidth(1);
-            // on ecrit les nombre a cote de l'axe
+            // on ecrit les nombres a cote de l'axe
             // le if sert a aligner les nombres superieurs a 10 bien a cote du trait
             if (index < 10) {
                 gc.strokeText(String.valueOf(index), secondsIndex - (firstSecondX * 0.1), xAxeHeight * 1.04);
@@ -229,11 +229,14 @@ public class HomeView {
 
         // nombre de pas affiches a l'ecran (va de 0 a 15)
 
-        float newtonStep = (float) determineNewtonMax(audioTirs);
+        float newtonStep = (float) (determineNewtonMax(audioTirs) * 1.6);
+
+        System.out.println("newton max : " + newtonStep);
 
         float firstNewtonStep = newtonAxeHeight;
         float newtonStepIndex = firstNewtonStep;
-        float sizeBetweenNewtonStep = newtonAxeHeight / newtonStep;
+        // le - hauteur du canvas sert a eviter que le derniere unite soit colle en haut
+        float sizeBetweenNewtonStep = (float) ((newtonAxeHeight - Sizes.canvasHeight * 0.05) / newtonStep);
 
         newtonStepIndex -= sizeBetweenNewtonStep;
 
@@ -253,15 +256,6 @@ public class HomeView {
 
             // on remet la largeur des traits a 3px pour tracer les traits
             gc.setLineWidth(3);
-
-            // on trace les lines en pointilles a chaque newton metre horizontalement
-//            gc.setStroke(Color.SLATEGRAY);
-//            gc.setLineWidth(0.7);
-//            gc.setLineDashes(Sizes.canvasHeight * 0.01);
-//            gc.strokeLine(newtonAxeWidth, newtonStepIndex, secondsIndex, newtonStepIndex);
-//            gc.setStroke(Color.BLACK);
-//            gc.setLineDashes(0);
-
 
             // on decremente pour le prochain tiret
             newtonStepIndex -= sizeBetweenNewtonStep;
@@ -287,15 +281,16 @@ public class HomeView {
 
         float kiloWattStep = determineKiloWattMax(audioTirs);
         float firstKiloWattStep = kiloWattAxeHeight;
-        float sizeBetweenKiloWattStep = kiloWattAxeHeight / kiloWattStep;
         float kiloWattStepIndex = firstKiloWattStep;
+        // le - hauteur du canvas sert a eviter que la derniere unite soit colle en haut
+        float sizeBetweenKiloWattStep = (float) ((kiloWattAxeHeight - (Sizes.canvasHeight * 0.05) * 2) / kiloWattStep);
 
         kiloWattStepIndex -= sizeBetweenKiloWattStep;
 
-        for (int index = 1; index < kiloWattAxeHeight; index++) {
+        for (int index = 1; index < kiloWattStep; index++) {
 
             if (index % 10 == 0) {
-                System.out.println(index);
+
                 gc.strokeLine(kiloWattAxeWidth, kiloWattStepIndex, kiloWattAxeWidth + Sizes.canvasWidth * 0.005, kiloWattStepIndex);
 
                 // on change la largeur des traits pour ecrire des lettres lisibles
@@ -310,11 +305,11 @@ public class HomeView {
 
             kiloWattStepIndex -= sizeBetweenKiloWattStep;
         }
-        System.out.println("nnn " + (int)newtonStep);
+
         // on ecrit l'unite de l'axe
         gc.setLineWidth(1);
         gc.strokeText(Constants.strings.getProperty("kiloWatt"),
-                kiloWattAxeWidth + Sizes.canvasWidth * 0.01, kiloWattStep + kiloWattAxeHeight * 0.0095);
+                kiloWattAxeWidth + Sizes.canvasWidth * 0.01, Sizes.canvasHeight * 0.05);
 
         ///////////////////////////////////////
         // on dessine les courbes
@@ -340,15 +335,15 @@ public class HomeView {
 
                 // axe des newtons
                 float newtonMax = newtonStepIndex + sizeBetweenNewtonStep;
-                float nanoMeterSize = (xAxeHeight - sizeBetweenNewtonStep) / 15;
+                float newtonMeterSize = (xAxeHeight - sizeBetweenNewtonStep) / newtonStep;
 
                 // on attribue la couleur du tir a la couleur de la courbe
                 gc.setStroke(tir.getCurveColor());
 
                 for (float variation : tir.getRoundPerFrameVariation()) {
 
-                    gc.strokeLine(lastSecondsindex, xAxeHeight - (lastVariation * nanoMeterSize),
-                            secondsIndex, xAxeHeight - (variation * nanoMeterSize));
+                    gc.strokeLine(lastSecondsindex, xAxeHeight - (lastVariation * newtonMeterSize),
+                            secondsIndex, xAxeHeight - (variation * newtonMeterSize));
                     lastSecondsindex = secondsIndex;
                     secondsIndex += secondsStep;
                     lastVariation = variation;
@@ -367,8 +362,9 @@ public class HomeView {
                 lastSecondsindex = secondsIndex;
                 lastVariation = tir.getKiloWattsPerFrameCurve().get(0);
 
-                float wattSize = (xAxeHeight - sizeBetweenNewtonStep) / determineKiloWattMax(audioTirs);
+                float wattSize = (float) ((kiloWattAxeHeight - (Sizes.canvasHeight * 0.05) * 2) / kiloWattStep);
 
+                System.out.println("kw maw : " + determineKiloWattMax(audioTirs));
                 for (float watt : tir.getKiloWattsPerFrameCurve()) {
 
 //                    System.out.println(watt);
@@ -392,7 +388,7 @@ public class HomeView {
         // est par defaut a 16 pour faire un axe de 15 tirets
         if (audioTirs == null || audioTirs.size() == 0) {
 
-            return 16;
+            return 10;
         }
         // sinon on recherche le tir le plus long
         else {
@@ -416,10 +412,10 @@ public class HomeView {
     private float determineKiloWattMax(List<AudioTir> audioTirs) {
 
         // si la liste est vide ou si on efface tous les tirs, le nombre de sec
-        // est par defaut a 16 pour faire un axe de 15 tirets
+        // est par defaut a 201 pour faire un axe de 200 tirets
         if (audioTirs == null || audioTirs.size() == 0) {
 
-            return 200;
+            return 201;
         }
         // sinon on recherche le tir le plus long
         else {

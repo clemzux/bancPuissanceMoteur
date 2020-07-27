@@ -66,7 +66,7 @@ public class AudioTir {
 //            System.out.println(wattValue*4);
         }
 
-        kiloWattsPerFrameCurve = flatCruve(kiloWattsPerFrameCurve);
+        kiloWattsPerFrameCurve = smoothCruve(kiloWattsPerFrameCurve);
     }
 
     // cette fonction sert a calculer la courbe des newtons metres avec une precision
@@ -96,16 +96,11 @@ public class AudioTir {
             if (index2 == nbCasesBy4mSec) {
 
 //                int variation = (int) Math.sqrt((nbRound - lastNbRound) * (nbRound - lastNbRound));
-//                spectrumVariations.add((float) (nbRound - lastNbRound));
+//                roundPerFrameVariation.add((float) (nbRound - lastNbRound));
                 roundPerFrameVariation.add((float) (nbRound));
 
                 // on garde le nombre de tours par quart de sec
                 roundPerFrame.add(nbRound);
-//                System.out.println(nbRound);
-//                System.out.println(lastNbRound);
-//                System.out.println(nbRound - lastNbRound);
-//                System.out.println("\n");
-//                System.out.println(nbRound);
                 lastNbRound = nbRound;
                 nbRound = 0;
                 index2 = 0;
@@ -117,8 +112,8 @@ public class AudioTir {
 
         // on lisse les tours car ils ne sont pas tres reguliers
 
-        roundPerFrameVariation = flatCruve(roundPerFrameVariation);
-        roundPerFrameVariation = flatCruve(roundPerFrameVariation);
+        roundPerFrameVariation = smoothCruve(roundPerFrameVariation);
+        roundPerFrameVariation = smoothCruve(roundPerFrameVariation);
 
         // on lisse les tours car ils ne sont pas tres reguliers
 
@@ -128,15 +123,15 @@ public class AudioTir {
         while (index < roundPerFrameVariation.size()) {
 
             roundPerFrameVariation.set(index, roundPerFrameVariation.get(index) * inertiaMoment);
-//            System.out.println(spectrumVariations.get(index) * inertiaMoment);
+
+//            System.out.println(roundPerFrameVariation.get(index) * inertiaMoment);
+
             index++;
         }
-
-//        for (float round : spectrumVariations)
-//            System.out.println(round);
     }
 
-    private List<Float> flatCruve(List<Float> curve) {
+    // cette fonction sert a lisser une courbe avec la methode des moyennes
+    private List<Float> smoothCruve(List<Float> curve) {
 
         List<Float> curveFlatted = new ArrayList<>();
 

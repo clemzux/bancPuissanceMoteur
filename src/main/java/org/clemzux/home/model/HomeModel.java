@@ -152,29 +152,6 @@ public class HomeModel {
 
             // on met a jour la vue (listview and canvas
             updateListAndCanvas();
-
-            //////////////////////////////////////////////// a retirer a la fin des tests
-            // test calcul tpm
-//            double seconds = frameLen / format.getFrameRate();
-//
-//            // donnees test
-//            int inOneSecond = spectralFlux.size() / (int) seconds;
-//            int nbValSup = 0;
-//            for (i = inOneSecond*1; i < inOneSecond*2; i++) {
-//
-////                System.out.println(spectralFlux.get(i));
-//
-//                if (spectralTreated.get(i) != 0)
-//                    nbValSup++;
-//            }
-//
-//            System.out.println("nb val sup : " + nbValSup);
-//            System.out.println("En une seconde : " + inOneSecond);
-//            System.out.println("Duree totale en cases du tableau : " + spectralTreated.size());
-//            System.out.println("Duree en sec : " + durationInSeconds);
-//            System.out.println("framerate : " + frameLen);
-
-            /////////////////////////////////////////////////
         }
         catch (UnsupportedAudioFileException e) {
             e.printStackTrace();
