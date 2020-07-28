@@ -57,13 +57,17 @@ public class AudioTir {
         float twoPiRad = (float) 2.68;
         float wattValue;
 
+        int i = 0;
+
+        System.out.println(roundPerFrame.size());
+        System.out.println(roundPerFrameVariation.size());
         for (int rpmInOneFrame : roundPerFrame) {
 
-            wattValue = rpmInOneFrame * twoPiRad;
+            wattValue = rpmInOneFrame * 4 * twoPiRad * roundPerFrameVariation.get(i);
             // meme si on mesure a une precision de 4 par secondes, on multiplie par 4 pour
             // avoir la valeur par seconde a l'instant t
-            kiloWattsPerFrameCurve.add(wattValue * 4);
-//            System.out.println(wattValue*4);
+            kiloWattsPerFrameCurve.add(wattValue);
+            i++;
         }
 
         kiloWattsPerFrameCurve = smoothCruve(kiloWattsPerFrameCurve);
@@ -123,9 +127,6 @@ public class AudioTir {
         while (index < roundPerFrameVariation.size()) {
 
             roundPerFrameVariation.set(index, roundPerFrameVariation.get(index) * inertiaMoment);
-
-//            System.out.println(roundPerFrameVariation.get(index) * inertiaMoment);
-
             index++;
         }
     }
@@ -137,6 +138,9 @@ public class AudioTir {
 
         int index;
 
+        // on ajoute le debut car la moyenne commence a 1
+        curveFlatted.add(curve.get(0));
+
         for (index = 1; index < curve.size() - 1; index++) {
 
             float lastVar = curve.get(index - 1);
@@ -145,6 +149,9 @@ public class AudioTir {
 
             curveFlatted.add((lastVar + currentVar + nextVar) / 3);
         }
+
+        // on ajoute la fin car la moyenne commence s'arrete avant la fin
+        curveFlatted.add(curve.get(index++));
 
         return curveFlatted;
     }

@@ -287,7 +287,7 @@ public class HomeView {
 
         for (int index = 1; index < kiloWattStep; index++) {
 
-            if (index % 10 == 0) {
+            if (index % 100 == 0) {
 
                 gc.strokeLine(kiloWattAxeWidth, kiloWattStepIndex, kiloWattAxeWidth + Sizes.canvasWidth * 0.005, kiloWattStepIndex);
 
@@ -321,6 +321,7 @@ public class HomeView {
 
                 /////////////////////////////////////////////////
                 // on commence par celle des newtons metres
+                /////////////////////////////////////////////////
 
                 // on va determiner les pas (axe des secondes) ou on va mettre un point
                 // rappel on aura 10 points par secondes
@@ -349,6 +350,7 @@ public class HomeView {
 
                 ////////////////////////////////////////////////////////////////
                 // on dessine maintenant celle des kilos watts en pointilles
+                ////////////////////////////////////////////////////////////////
 
                 gc.setLineDashes(Sizes.canvasHeight * 0.01);
 
