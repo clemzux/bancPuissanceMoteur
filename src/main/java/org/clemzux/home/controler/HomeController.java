@@ -26,6 +26,14 @@ public class HomeController {
 
         initOpenTirButtonListener();
         initListViewListener();
+        initOpenCalculateInertiaMomentListener();
+    }
+
+    private void initOpenCalculateInertiaMomentListener() {
+
+        homeView.getOpenCalculateInertiaMomentButton().setOnAction((ActionEvent e) -> {
+            homeModel.openCalculateInertiaMomentWindow();
+        });
     }
 
     private void initListViewListener() {

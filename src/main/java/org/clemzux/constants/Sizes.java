@@ -4,14 +4,15 @@ import java.awt.*;
 
 public class Sizes {
 
+    final static GraphicsEnvironment graphicsEnvironment = GraphicsEnvironment.getLocalGraphicsEnvironment();
+    final static GraphicsDevice graphicsDevice = graphicsEnvironment.getDefaultScreenDevice();
+
+    // taille de la toolbar de windows
+    final static Insets screenInsets = Toolkit.getDefaultToolkit().getScreenInsets(graphicsDevice.getDefaultConfiguration());
+
     /////////////////////////////////////////
     // home window sizes
     /////////////////////////////////////////
-
-    // taille de la toolbar de windows
-    final static GraphicsEnvironment graphicsEnvironment = GraphicsEnvironment.getLocalGraphicsEnvironment();
-    final static GraphicsDevice graphicsDevice = graphicsEnvironment.getDefaultScreenDevice();
-    final static Insets screenInsets = Toolkit.getDefaultToolkit().getScreenInsets(graphicsDevice.getDefaultConfiguration());
 
     // taille ecran (height sans la toolbar windows)
     public static int homeWindowWidth = Toolkit.getDefaultToolkit().getScreenSize().width;
@@ -24,4 +25,12 @@ public class Sizes {
     // taille canvas
     public static double canvasWidth = homeWindowWidth * 0.7;
     public static double canvasHeight = homeWindowHeight * 0.7;
+
+    /////////////////////////////////////////
+    // Calculate inertia moment window sizes
+    /////////////////////////////////////////
+
+    // taille fenetre
+    public static int calculateInertiaMomentWindowWidth = (int) (Toolkit.getDefaultToolkit().getScreenSize().width * 0.5);
+    public static int calculateInertiaMomentWindowHeight = (int) (Toolkit.getDefaultToolkit().getScreenSize().height * 0.5 - screenInsets.bottom);
 }

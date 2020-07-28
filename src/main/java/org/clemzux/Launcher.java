@@ -2,6 +2,7 @@ package org.clemzux;
 
 import javafx.application.Application;
 import javafx.stage.Stage;
+import org.clemzux.calculateinertiamoment.view.CalculateInertiaMomentView;
 import org.clemzux.constants.Constants;
 import org.clemzux.home.view.HomeView;
 

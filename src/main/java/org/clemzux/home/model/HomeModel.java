@@ -1,6 +1,5 @@
 package org.clemzux.home.model;
 
-import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import org.clemzux.constants.Constants;
 import org.clemzux.home.view.HomeView;
@@ -12,9 +11,7 @@ import org.clemzux.utils.Models;
 import javax.sound.sampled.*;
 import java.io.*;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class HomeModel {
 
@@ -203,6 +200,11 @@ public class HomeModel {
         }
 
         return spectrum;
+    }
+
+    public void openCalculateInertiaMomentWindow() {
+
+        homeView.openCalculateInertiamomentWindow();
     }
 
     public List<AudioTir> getAudioTirList() { return audioTirList; }

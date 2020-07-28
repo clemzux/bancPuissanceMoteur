@@ -12,6 +12,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import org.clemzux.calculateinertiamoment.view.CalculateInertiaMomentView;
 import org.clemzux.constants.Constants;
 import org.clemzux.constants.Sizes;
 import org.clemzux.home.controler.HomeController;
@@ -27,7 +28,7 @@ public class HomeView {
     private Scene scene;
 
     private Button homePhotoButton, homeOverlaysButton, homeOptionsButton, homeStartButton, homeStopButton;
-    private Button openTirButton;
+    private Button openTirButton, openCalculateInertiaMomentButton;
 
     private Label roundPerMinutesLabel;
 
@@ -72,6 +73,8 @@ public class HomeView {
         drawCanvasContent(null);
     }
 
+
+
     private void initializeWidgets() {
 
         // barre de menu
@@ -113,15 +116,17 @@ public class HomeView {
         Label compteToursNumeriqueLabel = new Label("roundPerMinutesLabel");
         roundPerMinutesLabel = new Label("0");
 
-        Label inertiaMomentLabel = new Label(Constants.strings.getProperty("rollWeightLabel"));
+        Label inertiaMomentLabel = new Label(Constants.strings.getProperty("inertiaMomentLabel"));
+        openCalculateInertiaMomentButton = new Button(Constants.strings.getProperty("openCalculateInertiaMoment"));
+        HBox labelAndCalculateButtonHbox = new HBox(inertiaMomentLabel, openCalculateInertiaMomentButton);
 //        inertiaMomentTextField = new TextField("2188.125");
-        inertiaMomentTextField = new TextField("1");
+        inertiaMomentTextField = new TextField("1.962");
 
 
         Label demultiplicationLabel = new Label(Constants.strings.getProperty("demultiplicationLabel"));
         demultiplicationTextField = new TextField("1");
 
-        VBox parametersVbox = new VBox(compteToursLabel, compteToursNumeriqueLabel, inertiaMomentLabel, inertiaMomentTextField,
+        VBox parametersVbox = new VBox(compteToursLabel, compteToursNumeriqueLabel, labelAndCalculateButtonHbox, inertiaMomentTextField,
                 demultiplicationLabel, demultiplicationTextField);
 
         VBox listViewVbox = new VBox(tirListView);
@@ -478,6 +483,13 @@ public class HomeView {
         tirListView.setPrefHeight(Sizes.listViewHeight);
     }
 
+    // cette methode permet d'ouvrir la fenetre qui va nous permettre de calculer le
+    // moment d'inertie d'un rouleau
+    public void openCalculateInertiamomentWindow() {
+
+        new CalculateInertiaMomentView(this);
+    }
+
     public Stage getPrimaryStage() { return primaryStage; }
 
     public Scene getScene() { return scene; }
@@ -499,4 +511,6 @@ public class HomeView {
     public TextField getInertiaMomentTextField() { return inertiaMomentTextField; }
 
     public TextField getDemultiplicationTextField() { return demultiplicationTextField; }
+
+    public Button getOpenCalculateInertiaMomentButton() { return openCalculateInertiaMomentButton; }
 }
