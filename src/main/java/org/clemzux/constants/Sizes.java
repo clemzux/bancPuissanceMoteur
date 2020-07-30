@@ -31,6 +31,6 @@ public class Sizes {
     /////////////////////////////////////////
 
     // taille fenetre
-    public static int calculateInertiaMomentWindowWidth = (int) (Toolkit.getDefaultToolkit().getScreenSize().width * 0.5);
-    public static int calculateInertiaMomentWindowHeight = (int) (Toolkit.getDefaultToolkit().getScreenSize().height * 0.5 - screenInsets.bottom);
+    public static int calculateInertiaMomentWindowWidth = (int) (Toolkit.getDefaultToolkit().getScreenSize().width * 0.3);
+    public static int calculateInertiaMomentWindowHeight = (int) (Toolkit.getDefaultToolkit().getScreenSize().height * 0.3 - screenInsets.bottom);
 }
