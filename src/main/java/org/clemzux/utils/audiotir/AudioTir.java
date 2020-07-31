@@ -59,8 +59,6 @@ public class AudioTir {
 
         int i = 0;
 
-        System.out.println(roundPerFrame.size());
-        System.out.println(roundPerFrameVariation.size());
         for (int rpmInOneFrame : roundPerFrame) {
 
             wattValue = rpmInOneFrame * 4 * twoPiRad * roundPerFrameVariation.get(i);
@@ -104,7 +102,8 @@ public class AudioTir {
                 roundPerFrameVariation.add((float) (nbRound));
 
                 // on garde le nombre de tours par quart de sec
-                roundPerFrame.add(nbRound);
+                // on multiplie par 4 pour avoir le nb de tour a l'instant t
+                roundPerFrame.add(nbRound * 4);
                 lastNbRound = nbRound;
                 nbRound = 0;
                 index2 = 0;
@@ -114,7 +113,7 @@ public class AudioTir {
             index2++;
         }
 
-        // on lisse les tours car ils ne sont pas tres reguliers
+        // on lisse les tours car ils ne sont pas tres reguliers (deux fois)
 
         roundPerFrameVariation = smoothCruve(roundPerFrameVariation);
         roundPerFrameVariation = smoothCruve(roundPerFrameVariation);

@@ -233,7 +233,7 @@ public class HomeView {
         gc.strokeLine(newtonAxeWidth, newtonAxeHeight, newtonAxeWidth, 0);
 
         // nombre de pas affiches a l'ecran (va de 0 a 15)
-
+        // on multiplie par 1.6 pour avoir de l'espace au dessus de la courbe
         float newtonStep = (float) (determineNewtonMax(audioTirs) * 1.6);
 
         float firstNewtonStep = newtonAxeHeight;
@@ -243,22 +243,28 @@ public class HomeView {
 
         newtonStepIndex -= sizeBetweenNewtonStep;
 
+        // cette var sert a savoir cmb de valeurs seront affichees sur l'axe des Nm, on prend 15 val affichees
+        int newtonScaleShow = (int) (newtonStep / 15);
+
         for (int index = 1; index < newtonStep; index++) {
 
-            gc.strokeLine(newtonAxeWidth, newtonStepIndex, newtonAxeWidth - Sizes.canvasWidth * 0.005, newtonStepIndex);
+            // pour le moment on affiche les newton 5 par 5 sur l'echelle
+            if (index % newtonScaleShow == 0) {
 
-            // on change la largeur des trait pour ecrire des lettres lisibles
-            gc.setLineWidth(1);
+                gc.strokeLine(newtonAxeWidth, newtonStepIndex, newtonAxeWidth - Sizes.canvasWidth * 0.005, newtonStepIndex);
 
-            if (index < 10) {
-                gc.strokeText(String.valueOf(index), newtonAxeWidth * 0.45, newtonStepIndex + newtonAxeHeight * 0.0095);
+                // on change la largeur des traits pour ecrire des lettres lisibles
+                gc.setLineWidth(1);
+
+                if (index < 10) {
+                    gc.strokeText(String.valueOf(index), newtonAxeWidth * 0.45, newtonStepIndex + newtonAxeHeight * 0.0095);
+                } else {
+                    gc.strokeText(String.valueOf(index), newtonAxeWidth * 0.2, newtonStepIndex + newtonAxeHeight * 0.0095);
+                }
+
+                // on remet la largeur des traits a 3px pour tracer les traits
+                gc.setLineWidth(3);
             }
-            else {
-                gc.strokeText(String.valueOf(index), newtonAxeWidth * 0.2, newtonStepIndex + newtonAxeHeight * 0.0095);
-            }
-
-            // on remet la largeur des traits a 3px pour tracer les traits
-            gc.setLineWidth(3);
 
             // on decremente pour le prochain tiret
             newtonStepIndex -= sizeBetweenNewtonStep;
@@ -290,9 +296,13 @@ public class HomeView {
 
         kiloWattStepIndex -= sizeBetweenKiloWattStep;
 
+        // cette echelle sert a savoir combien de tiret seront affiches dans le canvas
+        int echelleKiloWatt = (int) (kiloWattStep / 15);
+//        int echelleKiloWatt = determineKiloWattScale(kiloWattStep);
+
         for (int index = 1; index < kiloWattStep; index++) {
 
-            if (index % 100 == 0) {
+            if (index % echelleKiloWatt == 0) {
 
                 gc.strokeLine(kiloWattAxeWidth, kiloWattStepIndex, kiloWattAxeWidth + Sizes.canvasWidth * 0.005, kiloWattStepIndex);
 
@@ -382,6 +392,14 @@ public class HomeView {
             }
         }
     }
+
+//    private int determineKiloWattScale(float kiloWattMax) {
+//
+//        if (kiloWattMax < 150) {
+//            return 10;
+//        }
+//        else if (kiloWattMax > 150 && kiloWattMax )
+//    }
 
     // cette fonction sert a deteriner le plus grand newtons metres atteint dans la liste des tirs
     private double determineNewtonMax(List<AudioTir> audioTirs) {

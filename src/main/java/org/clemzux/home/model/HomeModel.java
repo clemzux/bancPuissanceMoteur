@@ -159,6 +159,8 @@ public class HomeModel {
         }
     }
 
+    // cette methode est appelee dans pas mal de cas : nouveau tir, changement de couleur,
+    // suppression tir ...
     public void updateListAndCanvas() {
 
         // on met a jour la liste des tirs
