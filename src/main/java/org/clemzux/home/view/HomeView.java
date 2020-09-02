@@ -32,7 +32,7 @@ public class HomeView {
 
     private Label roundPerMinutesLabel;
 
-    private TextField inertiaMomentTextField, demultiplicationTextField;
+    private TextField inertiaMomentTextField, demultiplicationTextField, pulseByRoundTextField;
 
     private Canvas canvas;
 
@@ -111,6 +111,7 @@ public class HomeView {
 
         ////////////////////////////////////////////////////////////////////////
         // partie a droite du canvas concernant les parametres
+
         // TODO compte tours, en attendant il y a un vide
         Label compteToursLabel = new Label("Compte tours");
         Label compteToursNumeriqueLabel = new Label("roundPerMinutesLabel");
@@ -124,10 +125,13 @@ public class HomeView {
 
 
         Label demultiplicationLabel = new Label(Constants.strings.getProperty("demultiplicationLabel"));
-        demultiplicationTextField = new TextField("1");
+        demultiplicationTextField = new TextField("8.38");
+
+        Label pulseByRoundLabel = new Label(Constants.strings.getProperty("demultiplicationLabel"));
+        pulseByRoundTextField = new TextField("20");
 
         VBox parametersVbox = new VBox(compteToursLabel, compteToursNumeriqueLabel, labelAndCalculateButtonHbox, inertiaMomentTextField,
-                demultiplicationLabel, demultiplicationTextField);
+                demultiplicationLabel, demultiplicationTextField, pulseByRoundLabel, pulseByRoundTextField);
 
         VBox listViewVbox = new VBox(tirListView);
 
@@ -248,7 +252,7 @@ public class HomeView {
 
         for (int index = 1; index < newtonStep; index++) {
 
-            // pour le moment on affiche les newton 5 par 5 sur l'echelle
+            // pour le moment on affiche les newtons 5 par 5 sur l'echelle
             if (index % newtonScaleShow == 0) {
 
                 gc.strokeLine(newtonAxeWidth, newtonStepIndex, newtonAxeWidth - Sizes.canvasWidth * 0.005, newtonStepIndex);
@@ -330,6 +334,8 @@ public class HomeView {
 
         gc.setLineWidth(2);
 
+        int accuracyBySec = 8;
+
         if (audioTirs != null) {
 
             for (AudioTir tir : audioTirs) {
@@ -342,7 +348,7 @@ public class HomeView {
                 // rappel on aura 10 points par secondes
                 float secondsStep = xAxeWidth - firstSecondX;
                 secondsStep /= tir.getDuration();
-                secondsStep /= 4;
+                secondsStep /= accuracyBySec;
                 secondsIndex = firstSecondX;
                 float lastSecondsindex = secondsIndex;
                 float lastVariation = tir.getRoundPerFrameVariation().get(0);
@@ -371,7 +377,7 @@ public class HomeView {
 
                 secondsStep = xAxeWidth - firstSecondX;
                 secondsStep /= tir.getDuration();
-                secondsStep /= 4;
+                secondsStep /= accuracyBySec;
                 secondsIndex = firstSecondX;
                 lastSecondsindex = secondsIndex;
                 lastVariation = tir.getKiloWattsPerFrameCurve().get(0);
@@ -531,4 +537,6 @@ public class HomeView {
     public TextField getDemultiplicationTextField() { return demultiplicationTextField; }
 
     public Button getOpenCalculateInertiaMomentButton() { return openCalculateInertiaMomentButton; }
+
+    public TextField getPulseByRoundTextField() { return pulseByRoundTextField; }
 }

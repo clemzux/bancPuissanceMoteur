@@ -17,8 +17,7 @@ public class AudioTir {
     private String ficPath;
     private String ficName;
     private int totalFrames;
-    private float duration;
-    private float inertiaMoment;
+    private float duration, inertiaMoment, demultiplication, pulseByRound;
     private Color curveColor;
 
     public static Map<Color, String> audioTirColor;
@@ -34,7 +33,8 @@ public class AudioTir {
         audioTirColor.put(Color.MAROON, null);
     }
 
-    public AudioTir(List<Float> audioFic, String ficPath, String ficName, int totalFrames, double duration, float inertiaMoment) {
+    public AudioTir(List<Float> audioFic, String ficPath, String ficName, int totalFrames,
+                    double duration, float inertiaMoment, float demultiplication, float pulseByRound) {
 
         this.audioFicSpectrum = audioFic;
         this.ficPath = ficPath;
@@ -42,6 +42,8 @@ public class AudioTir {
         this.totalFrames = totalFrames;
         this.duration = (float) duration;
         this.inertiaMoment = inertiaMoment;
+        this.demultiplication = demultiplication;
+        this.pulseByRound = pulseByRound;
 
         this.curveColor = determineColorAvailable(ficPath);
 
@@ -61,7 +63,7 @@ public class AudioTir {
 
         for (int rpmInOneFrame : roundPerFrame) {
 
-            wattValue = rpmInOneFrame * 4 * twoPiRad * roundPerFrameVariation.get(i);
+            wattValue = rpmInOneFrame * pulseByRound * twoPiRad * roundPerFrameVariation.get(i);
             // meme si on mesure a une precision de 4 par secondes, on multiplie par 4 pour
             // avoir la valeur par seconde a l'instant t
             kiloWattsPerFrameCurve.add(wattValue);
@@ -72,12 +74,14 @@ public class AudioTir {
     }
 
     // cette fonction sert a calculer la courbe des newtons metres avec une precision
-    // de 10 points par secondes
+    // de 8 points par secondes
     private void calculateNewtonMetersCurve() {
 
+        int accuracyBySec = 8;
+
         int spectrumLength = audioFicSpectrum.size();
-        int nbCasesBy4mSec = (int) (spectrumLength / duration);
-        nbCasesBy4mSec /= 4;
+        int nbCasesBy8mSec = (int) (spectrumLength / duration);
+        nbCasesBy8mSec /= accuracyBySec;
 
         roundPerFrameVariation = new ArrayList<>();
         roundPerFrame = new ArrayList<>();
@@ -87,7 +91,7 @@ public class AudioTir {
         int nbRound = 0;
         int lastNbRound = 0;
 
-        // cette boucle sert a calculer le nombre d'explosions tout les 4emes de secondes
+        // cette boucle sert a calculer le nombre d'explosions tout les 8emes de secondes
         while (index < spectrumLength) {
 
             if (audioFicSpectrum.get(index) != 0) {
@@ -95,15 +99,19 @@ public class AudioTir {
                 nbRound++;
             }
 
-            if (index2 == nbCasesBy4mSec) {
+            if (index2 == nbCasesBy8mSec) {
 
 //                int variation = (int) Math.sqrt((nbRound - lastNbRound) * (nbRound - lastNbRound));
 //                roundPerFrameVariation.add((float) (nbRound - lastNbRound));
-                roundPerFrameVariation.add((float) (nbRound));
+
+                nbRound /= pulseByRound;
+                float valToAdd = nbRound;
+                valToAdd /= demultiplication;
+                roundPerFrameVariation.add(valToAdd);
 
                 // on garde le nombre de tours par quart de sec
-                // on multiplie par 4 pour avoir le nb de tour a l'instant t
-                roundPerFrame.add(nbRound * 4);
+                // on multiplie par 8 pour avoir le nb de tour a l'instant t
+                roundPerFrame.add(nbRound * accuracyBySec);
                 lastNbRound = nbRound;
                 nbRound = 0;
                 index2 = 0;

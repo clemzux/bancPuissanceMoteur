@@ -60,6 +60,7 @@ public class HomeModel {
             case "mp3":
             case "MP3":
 
+                openMp3Tir(tirBase.getAbsolutePath());
                 break;
 
         }
@@ -97,17 +98,16 @@ public class HomeModel {
 
             // on tente de remplacer les petites valeurs par des 0 puis on fait une moyenne
             // on remplace a nouveau les petits chiffres par des 0
-            // on compte les blocs de valeurs differentes de 0
 
             spectralFlux = replaceValBy(spectralFlux, (float) 0.03, (float) 0);
             spectralFlux = averageSpectrum(spectralFlux);
             spectralFlux = replaceValBy(spectralFlux, (float) 0.03, (float) 0);
 
-            // on tente de detecter le nombre de variations de la courbe
+            // on tente de detecter le nombre de variations de la courbe en comptant
+            // en comptant les blocs de valeurs differents de 0
 
             i = 1;
             boolean grow = true;
-            boolean ungrow = false;
 
             while (i < spectralFlux.size()) {
 
@@ -115,11 +115,8 @@ public class HomeModel {
                 if (spectralFlux.get(i - 1) < spectralFlux.get(i)) {
 
                     grow = true;
-                    ungrow = false;
                 }
                 else if (spectralFlux.get(i - 1) > spectralFlux.get(i)){
-
-                    ungrow = true;
 
                     if (grow) {
                         spectralTreated.set(i, (float) 1);
@@ -135,10 +132,13 @@ public class HomeModel {
             double durationInSeconds = frameLen / format.getFrameRate();
             String ficName = tirFile.getName();
             String inertiaMoment = homeView.getInertiaMomentTextField().getText();
+            String demultiplication = homeView.getDemultiplicationTextField().getText();
+            String pulseByRound = homeView.getPulseByRoundTextField().getText();
 
             AudioTir audioTir =
                     new AudioTir(spectralTreated, wavTirPath, ficName, 0,
-                            durationInSeconds, Float.valueOf(inertiaMoment));
+                            durationInSeconds, Float.valueOf(inertiaMoment), Float.valueOf(demultiplication),
+                            Float.valueOf(pulseByRound));
 
             // on range dans la liste des tirs
 
@@ -156,6 +156,109 @@ public class HomeModel {
             e.printStackTrace();
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    private void openMp3Tir(String mp3TirPath) {
+
+        try {
+            AudioFileFormat inputFileFormat = AudioSystem.getAudioFileFormat(new File(mp3TirPath));
+
+            AudioInputStream ais = AudioSystem.getAudioInputStream(new File(mp3TirPath));
+
+            AudioFormat audioFormat = ais.getFormat();
+
+//            System.out.println("File Format Type: "+inputFileFormat.getType());
+//            System.out.println("File Format String: "+inputFileFormat.toString());
+//            System.out.println("File lenght: "+inputFileFormat.getByteLength());
+//            System.out.println("Frame length: "+inputFileFormat.getFrameLength());
+//            System.out.println("Channels: "+audioFormat.getChannels());
+//            System.out.println("Encoding: "+audioFormat.getEncoding());
+//            System.out.println("Frame Rate: "+audioFormat.getFrameRate());
+//            System.out.println("Frame Size: "+audioFormat.getFrameSize());
+//            System.out.println("Sample Rate: "+audioFormat.getSampleRate());
+//            System.out.println("Sample size (bits): "+audioFormat.getSampleSizeInBits());
+//            System.out.println("Big endian: "+audioFormat.isBigEndian());
+//            System.out.println("Audio Format String: "+audioFormat.toString());
+
+            byte [] sourceBytes = ais.readAllBytes();
+            byte [] encodedBytes = getAudioDataBytes(sourceBytes, audioFormat);
+
+            File outFile = new File("c:\\tmp.wav");
+            FileOutputStream out = new FileOutputStream(outFile);
+
+            out.write(encodedBytes);
+
+            out.close();
+
+//            try{
+////                int i = AudioSystem.write(encodedBytes, AudioFileFormat.Type.WAVE, new File("/tmp/tmp.wav"));
+////                System.out.println("Bytes Written: "+i);
+//            }catch(Exception e){
+//                e.printStackTrace();
+//            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (UnsupportedAudioFileException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+//        InputStream inputStream = getClass().getResourceAsStream(mp3TirPath);
+//        ByteArrayOutputStream output = new ByteArrayOutputStream();
+//
+//        AudioFormat audioFormat = new AudioFormat(44100, 8, 1, false, false);
+//
+//        Mp3ToWavConverter.convertFrom(inputStream).withTargetFormat(audioFormat).to(output);
+//
+//        byte[] wavContent = output.toByteArray();
+//
+//        try {
+//            final AudioFileFormat actualFileFormat = AudioSystem
+//                    .getAudioFileFormat(new ByteArrayInputStream(wavContent));
+//            Files.write(Paths.get("/tmp/tmp.wav"), wavContent);
+//
+//
+//        } catch (UnsupportedAudioFileException e) {
+//            e.printStackTrace();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+    }
+
+    public static byte [] getAudioDataBytes(byte [] sourceBytes, AudioFormat audioFormat) throws UnsupportedAudioFileException, IllegalArgumentException, Exception {
+        if(sourceBytes == null || sourceBytes.length == 0 || audioFormat == null){
+            throw new IllegalArgumentException("Illegal Argument passed to this method");
+        }
+
+        try (final ByteArrayInputStream bais = new ByteArrayInputStream(sourceBytes);
+             final AudioInputStream sourceAIS = AudioSystem.getAudioInputStream(bais)) {
+            AudioFormat sourceFormat = sourceAIS.getFormat();
+            AudioFormat convertFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, sourceFormat.getSampleRate(), 16, sourceFormat.getChannels(), sourceFormat.getChannels()*2, sourceFormat.getSampleRate(), false);
+//            AudioFormat convertFormat = new AudioFormat(
+//                    AudioFormat.Encoding.PCM_SIGNED,
+//                    2,
+//                    16,
+//                    2,
+//                    (1152 / 44100) * 1000,
+//                    1152 ,
+//                    false);
+            try (final AudioInputStream convert1AIS = AudioSystem.getAudioInputStream(convertFormat, sourceAIS);
+                 final AudioInputStream convert2AIS = AudioSystem.getAudioInputStream(audioFormat, convert1AIS);
+                 final ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+                byte [] buffer = new byte[8192];
+                while(true){
+                    int readCount = convert2AIS.read(buffer, 0, buffer.length);
+                    if(readCount == -1){
+                        break;
+                    }
+                    baos.write(buffer, 0, readCount);
+                }
+                return baos.toByteArray();
+            }
         }
     }
 
